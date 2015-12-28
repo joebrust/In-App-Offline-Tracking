@@ -74,7 +74,7 @@ var adSettings = {
 function init(){
 	retrieveAllOfflineTracking();
 	
-    track('imp');
+	track('imp');
 	
 	if(networkStatus){
 		fireAllOfflineTracking();
@@ -100,7 +100,7 @@ function init(){
 function click(string, destination){
 	var clickId;
 	
-    if(!networkStatus){
+	if(!networkStatus){
         return false;
     }
 
@@ -110,26 +110,25 @@ function click(string, destination){
         }
     }
 	
-    if(clickId){
+	if(clickId){
 		if(!testing){
 			if(destination){
-        		location.href = 'external-http://ads.pointroll.com/PortalServe/?pid=' + clickId + '&pos=c&r=' + Math.random();
+				location.href = 'external-http://ads.pointroll.com/PortalServe/?pid=' + clickId + '&pos=c&r=' + Math.random();
 			}else{
 				location.href = 'internal-http://ads.pointroll.com/PortalServe/?pid=' + clickId + '&pos=c&r=' + Math.random();
 			}
 		}else{
 			console.log('(click) ' + string);	
 		}
-    }else{
+	}else{
 		console.log('(click) error - no matching click id found for "' + string + '"');
 	}
 }
 
 function track(string){
 	var trackingImage = new Image();
-    var onlineActivityId;
-    var offlineActivityId;
-	
+	var onlineActivityId;
+	var offlineActivityId;
 	var offlineActivityCount;
 
     if(string == 'imp'){
@@ -169,7 +168,7 @@ function retrieveAllOfflineTracking(){
 	}else{
 		offlineImps = 0;	
 	}
-	
+
 	for(var i = 0; i < adSettings.activities.length; i++){
 		if(window.localStorage[adSettings.activities[i].name]){
 			offlineActivities.push([adSettings.activities[i].name, window.localStorage[adSettings.activities[i].name], adSettings.activities[i].offline]);
