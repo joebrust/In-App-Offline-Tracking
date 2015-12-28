@@ -1,2 +1,2 @@
 # In-App Offline Tracking
-Coming soon...
+Using javascript event listeners for the HTML5 video tag, I created a reusable object that could be used to apply video tracking within an ad. Tracking includes video start, restart, and replay, play and pause, mute and unmute, video completion quartiles, and video complete. You can also track more than one video separately.

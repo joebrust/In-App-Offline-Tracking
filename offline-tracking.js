@@ -1,8 +1,8 @@
-var PR_TESTING = true;
-var PR_NETWORK_STATUS = window.navigator.onLine;
-var PR_OFFLINE_IMPRESSIONS;
-var PR_OFFLINE_ACTIVITIES = [];
-var PR_AD = {
+var testing = false;
+var networkStatus = window.navigator.onLine;
+var offlineImps;
+var offlineActivities = [];
+var adSettings = {
     'settings': {
         'portrait': function(){
             //
@@ -71,172 +71,169 @@ var PR_AD = {
 	}]
 }
 
-function ecoStart(){
-	prRetrieveAllOfflineTracking();
+function init(){
+	retrieveAllOfflineTracking();
 	
-    prTrack('imp');
+    track('imp');
 	
-	if(PR_NETWORK_STATUS){
-		prFireAllOfflineTracking();
+	if(networkStatus){
+		fireAllOfflineTracking();
 	}
 	
 	window.ononline = function(){
-		console.log('pr log: user has connected to the internet');
+		console.log('user has connected to the internet');
 		
-		PR_NETWORK_STATUS = true;
+		networkStatus = true;
 		
-		prFireAllOfflineTracking();
+		fireAllOfflineTracking();
 	}
 	
 	window.onoffline = function(){
-		console.log('pr log: user has lost connection to the internet');
+		console.log('user has lost connection to the internet');
 		
-		PR_NETWORK_STATUS = false;
+		networkStatus = false;
 	}
-	
-	prInitAd();
 	
 	//include any 3rd party impression tracking here and/or start animation here
 }
 
-function prClick(string, destination){
-	var PR_CLICK_ID;
+function click(string, destination){
+	var clickId;
 	
-    if(!PR_NETWORK_STATUS){
+    if(!networkStatus){
         return false;
     }
 
-    for(var i = 0; i < PR_AD.clicks.length; i++){
-        if(string == PR_AD.clicks[i].name){
-            PR_CLICK_ID = PR_AD.clicks[i].online;
+    for(var i = 0; i < adSettings.clicks.length; i++){
+        if(string == adSettings.clicks[i].name){
+            clickId = adSettings.clicks[i].online;
         }
     }
 	
-    if(PR_CLICK_ID){
-		if(!PR_TESTING){
+    if(clickId){
+		if(!testing){
 			if(destination){
-        		location.href = 'external-http://ads.pointroll.com/PortalServe/?pid=' + PR_CLICK_ID + '&pos=c&r=' + Math.random();
+        		location.href = 'external-http://ads.pointroll.com/PortalServe/?pid=' + clickId + '&pos=c&r=' + Math.random();
 			}else{
-				location.href = 'internal-http://ads.pointroll.com/PortalServe/?pid=' + PR_CLICK_ID + '&pos=c&r=' + Math.random();
+				location.href = 'internal-http://ads.pointroll.com/PortalServe/?pid=' + clickId + '&pos=c&r=' + Math.random();
 			}
 		}else{
-			console.log('pr log: (click) ' + string);	
+			console.log('(click) ' + string);	
 		}
     }else{
-		console.log('pr log: (click) error - no matching click id found for "' + string + '"');
+		console.log('(click) error - no matching click id found for "' + string + '"');
 	}
 }
 
-function prTrack(string){
-	var PR_TRACKING_IMAGE = new Image();
-    var PR_ACTIVITY_ONLINE_ID;
-    var PR_ACTIVITY_OFFLINE_ID;
+function track(string){
+	var trackingImage = new Image();
+    var onlineActivityId;
+    var offlineActivityId;
 	
-	var PR_ACTIVITY_OFFLINE_COUNT;
+	var offlineActivityCount;
 
     if(string == 'imp'){
-        PR_ACTIVITY_ONLINE_ID = PR_AD.imp.online;
-        PR_ACTIVITY_OFFLINE_ID = PR_AD.imp.offline;
+        onlineActivityId = adSettings.imp.online;
+        offlineActivityId = adSettings.imp.offline;
     }else{
-    	for(var i = 0; i < PR_AD.activities.length; i++){
-            if(string == PR_AD.activities[i].name){
-                PR_ACTIVITY_ONLINE_ID = PR_AD.activities[i].online;
-                PR_ACTIVITY_OFFLINE_ID = PR_AD.activities[i].offline;
+    	for(var i = 0; i < adSettings.activities.length; i++){
+            if(string == adSettings.activities[i].name){
+                onlineActivityId = adSettings.activities[i].online;
+                offlineActivityId = adSettings.activities[i].offline;
             }
         }
     }
 	
-	if(PR_ACTIVITY_ONLINE_ID && PR_ACTIVITY_OFFLINE_ID){
-		if(!PR_TESTING){
-			if(PR_NETWORK_STATUS){
-				PR_TRACKING_IMAGE.src = 'http://ads.pointroll.com/PortalServe/?pid=' + PR_ACTIVITY_ONLINE_ID + '&pos=p&r=' + Math.random();
+	if(onlineActivityId && offlineActivityId){
+		if(!testing){
+			if(networkStatus){
+				trackingImage.src = 'http://ads.pointroll.com/PortalServe/?pid=' + onlineActivityId + '&pos=p&r=' + Math.random();
 			}else{
 				if(string == 'imp'){
-					prRecordOfflineImpression();
+					recordOfflineImpression();
 				}else{
-					prRecordOfflineActivity(string, PR_ACTIVITY_OFFLINE_ID);
+					recordOfflineActivity(string, offlineActivityId);
 				}
 			}
 		}else{
-			console.log('pr log: (activity) ' + string);
+			console.log('(activity) ' + string);
 		}
 	}else{
-		console.log('pr log: (activity) error - no matching activity id found for "' + string + '"');
+		console.log('(activity) error - no matching activity id found for "' + string + '"');
 	}
 }
 
-function prRetrieveAllOfflineTracking(){
+function retrieveAllOfflineTracking(){
 	if(window.localStorage['imp']){
-		PR_OFFLINE_IMPRESSIONS = window.localStorage['imp'];	
+		offlineImps = window.localStorage['imp'];	
 	}else{
-		PR_OFFLINE_IMPRESSIONS = 0;	
+		offlineImps = 0;	
 	}
 	
-	for(var i = 0; i < PR_AD.activities.length; i++){
-		if(window.localStorage[PR_AD.activities[i].name]){
-			PR_OFFLINE_ACTIVITIES.push([PR_AD.activities[i].name, window.localStorage[PR_AD.activities[i].name], PR_AD.activities[i].offline]);
+	for(var i = 0; i < adSettings.activities.length; i++){
+		if(window.localStorage[adSettings.activities[i].name]){
+			offlineActivities.push([adSettings.activities[i].name, window.localStorage[adSettings.activities[i].name], adSettings.activities[i].offline]);
 		}
 	}
 }
 
-function prRecordOfflineImpression(){
+function recordOfflineImpression(){
 	if(window.localStorage['imp']){
-		PR_OFFLINE_IMPRESSIONS++;
+		offlineImps++;
 	}else{
-		PR_OFFLINE_IMPRESSIONS = 1;
+		offlineImps = 1;
 	}
 	
-	window.localStorage['imp'] = PR_OFFLINE_IMPRESSIONS;
+	window.localStorage['imp'] = offlineImps;
 	
-	console.log('pr log: (impression) record offline impression (' + PR_OFFLINE_IMPRESSIONS + ')');
+	console.log('(impression) record offline impression (' + offlineImps + ')');
 }
 
-function prRecordOfflineActivity(string, id){
-	var PR_ACTIVITY_INDEX = -1;
+function recordOfflineActivity(string, id){
+	var activityIndex = -1;
 	
-	for(var i = 0; i < PR_OFFLINE_ACTIVITIES.length; i++){
-		if(PR_OFFLINE_ACTIVITIES[i][0] == string){
-			PR_ACTIVITY_INDEX = i;
+	for(var i = 0; i < offlineActivities.length; i++){
+		if(offlineActivities[i][0] == string){
+			activityIndex = i;
 		}
 	}
 	
-	if(PR_ACTIVITY_INDEX != -1){
-		PR_OFFLINE_ACTIVITIES[PR_ACTIVITY_INDEX] = [string, PR_OFFLINE_ACTIVITIES[PR_ACTIVITY_INDEX][1] + 1, id];
+	if(activityIndex != -1){
+		offlineActivities[activityIndex] = [string, offlineActivities[activityIndex][1] + 1, id];
 		
-		window.localStorage[PR_OFFLINE_ACTIVITIES[PR_ACTIVITY_INDEX][0]] = PR_OFFLINE_ACTIVITIES[PR_ACTIVITY_INDEX][1];
+		window.localStorage[offlineActivities[activityIndex][0]] = offlineActivities[activityIndex][1];
 	}else{
-		PR_OFFLINE_ACTIVITIES.push([string, 1, id]);
+		offlineActivities.push([string, 1, id]);
 		
 		window.localStorage[string] = 1;
 	}
 	
-	console.log('pr log: (activity) record offline activity "' + string + ', ' + id + '" (' + window.localStorage[string] + ')');
+	console.log('(activity) record offline activity "' + string + ', ' + id + '" (' + window.localStorage[string] + ')');
 }
 
-function prFireAllOfflineTracking(){
+function fireAllOfflineTracking(){
 	if(window.localStorage['imp']){
-		for(i = 0; i < PR_OFFLINE_IMPRESSIONS; i++){
-			var PR_TRACKING_IMAGE = new Image();
+		for(i = 0; i < offlineImps; i++){
+			var trackingImage = new Image();
 			
-			PR_TRACKING_IMAGE.src = 'http://ads.pointroll.com/PortalServe/?pid=' + PR_AD.imp.offline + '&pos=p&r=' + Math.random();
+			trackingImage.src = 'http://ads.pointroll.com/PortalServe/?pid=' + adSettings.imp.offline + '&pos=p&r=' + Math.random();
 		}
 	}
 	
-	for(var i = 0; i < PR_OFFLINE_ACTIVITIES.length; i++){
-		for(var j = 0; j < window.localStorage[PR_OFFLINE_ACTIVITIES[i][0]]; j++){
-			var PR_TRACKING_IMAGE = new Image();
+	for(var i = 0; i < offlineActivities.length; i++){
+		for(var j = 0; j < window.localStorage[offlineActivities[i][0]]; j++){
+			var trackingImage = new Image();
 			
-			PR_TRACKING_IMAGE.src = 'http://ads.pointroll.com/PortalServe/?pid=' + PR_OFFLINE_ACTIVITIES[i][2] + '&pos=p&r=' + Math.random();	
+			trackingImage.src = 'http://ads.pointroll.com/PortalServe/?pid=' + offlineActivities[i][2] + '&pos=p&r=' + Math.random();	
 		}
 	}
 	
-	PR_OFFLINE_IMPRESSIONS = 0;
-	PR_OFFLINE_ACTIVITIES = [];
+	offlineImps = 0;
+	offlineActivities = [];
 	
 	window.localStorage.clear();
 	
-	console.log('pr log: all offline tracking has been fired and now flushed from storage');
+	console.log('all offline tracking has been fired and now flushed from storage');
 }
 
-//comment out the code below before sending to the economist
-window.onload = ecoStart;
+window.onload = init;
